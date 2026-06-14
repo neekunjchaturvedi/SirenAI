@@ -1,0 +1,9 @@
+export { User, IUser } from "./user.model";
+export { Otp, IOtp } from "./otp.model";
+export { ResetPassword, IResetPassword } from "./resetPassword.model";
+export { Product, IProduct } from "./product.model";
+export { Custom, ICustom } from "./custom.model";
+export { Order, IOrder } from "./order.model";
+export { Cart, ICart } from "./cart.model";
+export { Address, IAddress } from "./address.model";
+export { Category, ICategory } from "./category.model";

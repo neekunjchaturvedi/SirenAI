@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package notification;
+
+service NotificationService {
+  rpc SendEmail (EmailRequest) returns (EmailResponse) {}
+}
+
+message EmailRequest {
+  string userId = 1;
+  string email = 2;
+  string templateType = 3;
+  string dataJson = 4; 
+}
+
+message EmailResponse {
+  bool success = 1;
+  string message = 2;
+}

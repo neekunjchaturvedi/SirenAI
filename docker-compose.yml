@@ -1,0 +1,90 @@
+# Siren — Docker Compose orchestration.
+#
+# The monitored target (the REAL e-commerce server, services/real-test-server) is
+# NOT defined here: the operator creates/starts/stops/heals it on demand via the
+# Docker API, driven by the dashboard. Build its two images first:
+#     ./scripts/build-real-images.sh   (-> siren-real-server:v1 good, :v2 broken)
+#
+# SECURITY CAVEAT (demo only): the operator mounts /var/run/docker.sock so it can
+# observe and control the target via the Docker API. The Docker socket is
+# root-equivalent on the host. Acceptable for a hackathon demo on a trusted
+# machine ONLY. Do not run this configuration in production.
+
+networks:
+  # Explicit fixed name so the operator can attach the target it creates to the
+  # same network and reach it by container name (http://siren-real-server:5000).
+  siren-net:
+    name: siren-net
+
+services:
+  operator:
+    build:
+      context: .
+      dockerfile: services/operator/Dockerfile
+    container_name: siren-operator
+    environment:
+      # ── Analyzer LLM ──
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL}
+      LLM_API_KEY_HEADER: ${LLM_API_KEY_HEADER:-authorization}
+      LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0.3}
+      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-8192}
+      LLM_TIMEOUT_MS: ${LLM_TIMEOUT_MS:-90000}
+      # ── Voice ──
+      VOICE_PROVIDER: ${VOICE_PROVIDER:-mock}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      ELEVENLABS_AGENT_ID: ${ELEVENLABS_AGENT_ID:-}
+      ELEVENLABS_AGENT_PHONE_NUMBER_ID: ${ELEVENLABS_AGENT_PHONE_NUMBER_ID:-}
+      ON_CALL_PHONE_NUMBER: ${ON_CALL_PHONE_NUMBER:-}
+      PUBLIC_WEBHOOK_URL: ${PUBLIC_WEBHOOK_URL:-}
+      # ── Watcher thresholds ──
+      ERROR_RATE_THRESHOLD: ${ERROR_RATE_THRESHOLD:-0.2}
+      CONSECUTIVE_SAMPLES: ${CONSECUTIVE_SAMPLES:-3}
+      P95_LATENCY_MS_THRESHOLD: ${P95_LATENCY_MS_THRESHOLD:-1500}
+      MEMORY_MB_THRESHOLD: ${MEMORY_MB_THRESHOLD:-400}
+      WAKE_ON_ANY_ERROR_LINE: ${WAKE_ON_ANY_ERROR_LINE:-false}
+      DECISION_TIMEOUT_MS: ${DECISION_TIMEOUT_MS:-90000}
+      VERIFY_WINDOW_MS: ${VERIFY_WINDOW_MS:-10000}
+      # ── Monitored target (real server) ──
+      TARGET_CONTAINER: ${TARGET_CONTAINER:-siren-real-server}
+      TARGET_URL: ${TARGET_URL:-http://siren-real-server:5000}
+      TARGET_GOOD_IMAGE: ${TARGET_GOOD_IMAGE:-siren-real-server:v1}
+      TARGET_BAD_IMAGE: ${TARGET_BAD_IMAGE:-siren-real-server:v2}
+      TARGET_IMAGE: ${TARGET_BAD_IMAGE:-siren-real-server:v2}
+      TARGET_HEALTH_PATH: ${TARGET_HEALTH_PATH:-/health}
+      TARGET_PORT: ${TARGET_PORT:-5000}
+      TARGET_HOST_PORT: ${TARGET_HOST_PORT:-5050}
+      TARGET_NETWORK: siren-net
+      # forwarded into the created target container (RELEASE is baked per-image).
+      # config reads TARGET_MONGODB_URI first, then falls back to MONGODB_URI.
+      TARGET_MONGODB_URI: ${TARGET_MONGODB_URI:-}
+      MONGODB_URI: ${MONGODB_URI:-}
+      TARGET_JWT_SECRET: ${TARGET_JWT_SECRET:-siren-demo-secret}
+      TARGET_FRONTEND_URL: ${TARGET_FRONTEND_URL:-http://localhost:5173}
+      OPERATOR_PORT: ${OPERATOR_PORT:-4000}
+    ports:
+      # NOTE: the target container publishes its own host port (TARGET_HOST_PORT)
+      # when the operator creates it, so the operator must NOT also bind it.
+      - "${OPERATOR_PORT:-4000}:4000"
+    volumes:
+      # root-equivalent on the host — demo only (see caveat above)
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - siren-net
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: services/dashboard/Dockerfile
+    container_name: siren-dashboard
+    depends_on:
+      - operator
+    environment:
+      OPERATOR_URL: ${OPERATOR_URL:-http://localhost:4000}
+    ports:
+      - "${DASHBOARD_PORT:-5173}:5173"
+    networks:
+      - siren-net
+    restart: unless-stopped

@@ -1,0 +1,23 @@
+{
+  "name": "siren",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Siren — AI incident-response system that detects, diagnoses, phones the on-call engineer, remediates, and verifies.",
+  "workspaces": [
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "build:shared": "npm run build --workspace packages/shared",
+    "typecheck": "tsc -b --pretty",
+    "clean": "rimraf 'packages/*/dist' 'services/*/dist' '**/*.tsbuildinfo'"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "rimraf": "^5.0.10"
+  }
+}
