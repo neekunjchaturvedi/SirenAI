@@ -3,7 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🚨 Siren — Incident Response</title>
+    <title>Siren — Incident Response</title>
+    <script>
+      // apply saved/system theme before paint to avoid a flash
+      (function () {
+        try {
+          var t = localStorage.getItem('siren-theme');
+          if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          if (t === 'dark') document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

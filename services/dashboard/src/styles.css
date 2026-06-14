@@ -1,39 +1,76 @@
 @import 'tailwindcss';
 
-@theme {
-  --color-bg: #0d1117;
-  --color-panel: #161b22;
-  --color-panel2: #1c2330;
-  --color-edge: #2a3340;
-  --color-ink: #e6edf3;
-  --color-muted: #8b949e;
-  --color-ok: #3fb950;
-  --color-warn: #d29922;
-  --color-bad: #f85149;
-  --color-accent: #58a6ff;
-  --color-purple: #bc8cff;
+/* class-based dark mode: `dark:` utilities respond to a `.dark` ancestor */
+@custom-variant dark (&:where(.dark, .dark *));
 
-  --animate-pulse-dot: pulse-dot 1s infinite;
-  --animate-blink: blink 0.8s infinite;
-  --animate-cardflash: cardflash 0.6s ease-out;
+@theme {
+  /* neutral surface system — light theme defaults */
+  --color-bg: #fafafa; /* page */
+  --color-panel: #ffffff; /* cards */
+  --color-panel2: #f5f5f6; /* inset surfaces: inputs, inner panels, hover */
+  --color-edge: #ececee; /* hairline borders */
+  --color-ink: #0a0a0a; /* primary text / black */
+  --color-muted: #6b7280; /* secondary text */
+  --color-faint: #9ca3af; /* tertiary text */
+
+  /* status accents */
+  --color-ok: #16a34a; /* green */
+  --color-warn: #ca8a04; /* yellow */
+  --color-hi: #ea580c; /* orange (high severity) */
+  --color-bad: #dc2626; /* red */
+  --color-accent: #111827; /* neutral "accent" = near-black */
+  --color-onink: #ffffff; /* text that sits on a bg-ink (primary) button */
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  --animate-pulse-dot: pulse-dot 1.4s ease-in-out infinite;
+  --animate-blink: blink 1s infinite;
+  --animate-cardflash: cardflash 0.8s ease-out;
+}
+
+/* dark theme: override the neutral tokens; status accents brighten slightly.
+   Every utility built on these vars (bg-bg, text-ink, border-edge, …) flips. */
+.dark {
+  --color-bg: #0b0c0e;
+  --color-panel: #141518;
+  --color-panel2: #1d1f23;
+  --color-edge: #292b30;
+  --color-ink: #f3f4f6;
+  --color-muted: #9aa1ab;
+  --color-faint: #6b7280;
+
+  --color-ok: #34d399;
+  --color-warn: #fbbf24;
+  --color-hi: #fb923c;
+  --color-bad: #f87171;
+  --color-accent: #f3f4f6;
+  --color-onink: #0b0c0e; /* dark text on the now-light primary button */
 }
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  50% { opacity: 0.35; }
 }
 @keyframes blink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.2; }
+  50% { opacity: 0.25; }
 }
 @keyframes cardflash {
-  from { box-shadow: 0 0 0 1px var(--color-accent), 0 0 26px -6px var(--color-accent); }
-  to { box-shadow: none; }
+  from { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-ink) 12%, transparent); }
+  to { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
 }
 
 @layer base {
   body {
-    @apply bg-bg text-ink font-mono;
+    @apply bg-bg text-ink;
+    font-family: var(--font-sans);
     margin: 0;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
+  *::-webkit-scrollbar { width: 8px; height: 8px; }
+  *::-webkit-scrollbar-thumb { background: var(--color-edge); border-radius: 9999px; }
+  *::-webkit-scrollbar-track { background: transparent; }
 }

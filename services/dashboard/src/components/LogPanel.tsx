@@ -4,7 +4,7 @@ import type { LogLine } from '@siren/shared';
 function levelClass(line: string): string {
   if (/\b(ERROR|FATAL)\b|exception|unhandled/i.test(line)) return 'text-bad';
   if (/\bWARN\b/.test(line)) return 'text-warn';
-  return 'text-[#9fb0c0]';
+  return 'text-muted';
 }
 
 export function LogPanel({ logs }: { logs: LogLine[] }) {
@@ -14,14 +14,19 @@ export function LogPanel({ logs }: { logs: LogLine[] }) {
   }, [logs.length]);
 
   return (
-    <div className="bg-panel border border-edge rounded-xl p-3">
-      <div className="font-bold text-accent mb-2">📜 Live logs · prod-app</div>
-      <div className="h-[70vh] overflow-y-auto text-[12.5px] max-lg:h-[40vh]">
-        {logs.length === 0 && <div className="text-muted">no logs yet…</div>}
+    <div className="bg-panel border border-edge rounded-2xl p-4 shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <h2 className="text-sm font-semibold">Live logs</h2>
+        <span className="text-faint text-xs">· siren-real-server</span>
+      </div>
+      <div className="h-[44vh] overflow-y-auto font-mono text-[12px] leading-relaxed max-lg:h-[40vh]">
+        {logs.length === 0 && <div className="text-faint">no logs yet…</div>}
         {logs.map((l, i) => (
           <div
             key={i}
-            className={`whitespace-pre-wrap break-words py-px border-b border-[#11161d] ${levelClass(l.line)}`}
+            className={`whitespace-pre-wrap break-words py-1 border-b border-edge/60 last:border-0 ${levelClass(
+              l.line,
+            )}`}
           >
             {l.line}
           </div>
